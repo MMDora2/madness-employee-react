@@ -1,4 +1,5 @@
 require("dotenv").config();
+const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
 const EmployeeModel = require("./db/employee.model");
@@ -14,7 +15,11 @@ if (!MONGO_URL) {
 const app = express();
 app.use(express.json());
 
-//Task3:Equipments
+app.use(cors({
+  origin: "http://localhost:5173",  
+}));
+
+//Equipments
 app.get("/api/equipments/", async (req, res) => {
   const equipments = await EquipmentModel.find().sort({ created: "desc" });
   return res.json(equipments);
@@ -57,7 +62,7 @@ app.delete("/api/equipments/:id", async (req, res, next) => {
   }
 });
 
-//Task4: Search
+//Search by name
 app.get("/api/search/:chosenName", async (req, res) => {
   const employeesByName = await EmployeeModel.find({
     name: { $regex: req.params.chosenName, $options: "i" },
@@ -70,7 +75,7 @@ app.get("/api/employees/", async (req, res) => {
   const employees = await EmployeeModel.find()
     .sort({ created: "desc" })
     .populate(["favoriteBrand", "equipment"]);
-  // const employees = await EmployeeModel.find().sort({name: 1}); //ABC....név szerint rendezi
+  // const employees = await EmployeeModel.find().sort({name: 1}); //ABC....order by name
   return res.json(employees);
 });
 
@@ -135,7 +140,7 @@ app.post("/api/employees/", async (req, res, next) => {
   }
 });
 
-//Missing
+//MissingEmployee
 app.get("/api/missingEmployes/", async (req, res) => {
   try {
     const missingEmployees = await EmployeeModel.find({ present: false });
@@ -170,7 +175,6 @@ app.patch("/api/employees/:id", async (req, res, next) => {
   }
 });
 
-//Practice:Bonuses
 app.patch("/api/bonus/:employeeId", async (req, res, next) => {
   try {
     const employee = await EmployeeModel.findByIdAndUpdate(
